@@ -273,10 +273,17 @@ abstract class Model extends Eloquent
         $loadedAttributes->each(function ($attribute, $key) use ($modelData) {
             if (!$attribute->isStatic()) {
                 $attribute->setEntity($this->baseEntity());
-                $attribute->insertAttribute($modelData[$attribute->getAttributeCode()], $this->getKey());
+
+                if(is_array($modelData[$attribute->getAttributeCode()])) {
+                    foreach($modelData[$attribute->getAttributeCode()] as $value) {
+                        $attribute->insertAttribute($value, $this->getKey());
+                    }
+                } else {
+                    $attribute->insertAttribute($modelData[$attribute->getAttributeCode()], $this->getKey());
+                }
             }
         });
-        
+
         return true;
     }
 
@@ -378,12 +385,32 @@ abstract class Model extends Eloquent
     public function updateAttributes(Builder $query, array $options, $modelData, $loadedAttributes)
     {
         $loadedAttributes->each(function ($attribute, $key) use ($modelData) {
+            /** @var Attribute $attribute */
             if (!$attribute->isStatic()) {
                 $attribute->setEntity($this->baseEntity());
-                $attribute->updateAttribute($modelData[$attribute->getAttributeCode()], $this->getKey());
+
+                if(is_array($modelData[$attribute->getAttributeCode()])) {
+                    // Just delete everything and reattach (like a sync)
+                    $attributes = [
+                        'entity_type_id' => $attribute->entity()->getKey(),
+                        'attribute_id' => $attribute->getKey(),
+                        'entity_id' => $this->getKey(),
+                    ];
+
+                    $attribute->newBaseQueryBuilder()
+                        ->from($attribute->backendTable())
+                        ->where($attributes)
+                        ->delete();
+
+                    foreach($modelData[$attribute->getAttributeCode()] as $value) {
+                        $attribute->insertAttribute($value, $this->getKey());
+                    }
+                } else {
+                    $attribute->updateAttribute($modelData[$attribute->getAttributeCode()], $this->getKey());
+                }
             }
         });
-        
+
         return true;
     }
 
@@ -403,5 +430,30 @@ abstract class Model extends Eloquent
             }
             $model->setAttribute('entity_id', $this->baseEntityId());
         }, 9999);
+    }
+
+    /**
+     * Set the array of model attributes. No checking is done.
+     *
+     * @param  array  $attributes
+     * @param  bool  $sync
+     * @return $this
+     */
+    public function setRawAttributes(array $attributes, $sync = false)
+    {
+        foreach($attributes as $key => $value) {
+            if (strpos($key, 'multi_') !== false) {
+                $attributes[str_replace('multi_', '', $key)] = collect(explode(',', $value));
+                unset($attributes[$key]);
+            }
+        }
+
+        $this->attributes = $attributes;
+
+        if ($sync) {
+            $this->syncOriginal();
+        }
+
+        return $this;
     }
 }

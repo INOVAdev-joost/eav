@@ -28,14 +28,20 @@ trait QueryBuilder
     }
 
     public function addSubQuery($query)
-    {   
-        $subQuery = DB::table($this->backendTable())->select("value")
+    {
+        $subQuery = DB::table($this->backendTable())
             ->where('attribute_id', $this->attributeId())
             ->whereColumn("{$query->from}.{$this->entity()->entityKey()}", "entity_id");
 
-        $query->selectSub($subQuery, $this->code());
+        if($this->is_multiple) {
+            $subQuery = $subQuery->selectRaw("GROUP_CONCAT(`value`) as `value`");
+        } else {
+            $subQuery = $subQuery->select("value");
+        }
+
+        $query->selectSub($subQuery, ($this->is_multiple ? 'multi_' : '') . $this->code());
     }
-    
+
     /**
      * Add a new select column to the query.
      *

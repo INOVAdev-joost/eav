@@ -29,9 +29,10 @@ class Attribute extends Model
     protected $fillable = [
         'attribute_code', 'backend_class', 'backend_type',
         'backend_table', 'frontend_class', 'frontend_type',
-        'frontend_label', 'source_class',  'default_value',
-        'is_filterable', 'is_searchable',  'is_required',
-        'required_validate_class', 'entity_id'
+        'frontend_label', 'source_class', 'default_value',
+        'is_filterable', 'is_searchable', 'is_required',
+        'required_validate_class', 'entity_id',
+        'is_multiple',
     ];
 
     /**
@@ -537,12 +538,20 @@ class Attribute extends Model
     /**
      * Insert the data for the attribute.
      *
-     * @param  mixed $value
-     * @param  int $entityId
+     * @param mixed $value
+     * @param int $entityId
      * @return bool
      */
     public function insertAttribute($value, $entityId)
     {
+        if (is_array($value)) {
+            foreach ($value as $item) {
+                $this->insertAttribute($item, $entityId);
+            }
+
+            return true;
+        }
+
         $insertData = [
             'entity_type_id' => $this->getEntity()->getKey(),
             'attribute_id' => $this->getKey(),
