@@ -1,22 +1,22 @@
-<?php 
+<?php
 namespace Eav\Database\Query;
 
 use Closure;
 use Eav\Entity;
 use Eav\ProcessAttributes;
 use Eav\Traits\Attribute;
-use Illuminate\Support\Str;
-use Illuminate\Support\Arr;
-use Illuminate\Database\Query\Expression;
 use Illuminate\Database\ConnectionInterface;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Query\Grammars\Grammar;
 use Illuminate\Database\Query\Processors\Processor;
-use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 class Builder extends QueryBuilder
 {
     use Attribute;
-    
+
     /**
      * Flag to indicate the current attribute for the query
      * is processed.
@@ -24,7 +24,7 @@ class Builder extends QueryBuilder
      * @var boolean
      */
     protected $isProcessed = false;
-    
+
     /**
      * Flag to indicate the query has conditions based on
      * attributes.
@@ -32,7 +32,7 @@ class Builder extends QueryBuilder
      * @var boolean
      */
     public $hasAttributeConditions = false;
-    
+
     /**
      * The where constraints for the query.
      *
@@ -67,7 +67,7 @@ class Builder extends QueryBuilder
      * @var array
      */
     public $orginalColumns = [];
-    
+
     /**
      * Holds Entity Instance.
      *
@@ -82,7 +82,7 @@ class Builder extends QueryBuilder
      */
     public $joinCache = [];
 
-    
+
     /**
      * Create a new query builder instance.
      *
@@ -100,7 +100,7 @@ class Builder extends QueryBuilder
         $this->baseEntity = $baseEntity;
         parent::__construct($connection, $grammar, $processor);
     }
-    
+
     /**
      * Get the Entity related to the model.
      *
@@ -111,7 +111,7 @@ class Builder extends QueryBuilder
     {
         return $this->baseEntity;
     }
-    
+
     /**
      * Check if the Entity can use flat table.
      *
@@ -135,7 +135,7 @@ class Builder extends QueryBuilder
         }
 
         $loadedAttributes = $this->loadAttributes(array_keys($values));
-        
+
         $loadedAttributes->validate($values);
 
         $this->select($this->baseEntity()->getEntityKey());
@@ -153,7 +153,7 @@ class Builder extends QueryBuilder
                 unset($values[$attribute->getAttributeCode()]);
             }
         });
-        
+
         $query = $this->newQuery()->from($this->from)
             ->whereIn($this->baseEntity()->getEntityKey(), $entityIds);
 
@@ -163,7 +163,7 @@ class Builder extends QueryBuilder
             $query->grammar->prepareBindingsForUpdate($query->bindings, $values)
         ));
     }
-    
+
     /**
      * Insert a new record into the database.
      *
@@ -210,13 +210,13 @@ class Builder extends QueryBuilder
         // connection and return a result as a boolean success indicator as that
         // is the same type of result returned by the raw connection instance.
         $bindings = $this->cleanBindings($bindings);
-        
-        
+
+
         foreach ($bindings as $binding) {
             $value = is_numeric($binding) ? $binding : "'".$binding."'";
             $sql = preg_replace('/\?/', $value, $sql, 1);
         }
-        
+
         return $sql;
     }
 
@@ -232,10 +232,10 @@ class Builder extends QueryBuilder
         if (!$this->hasAttributeConditions || $this->isProcessed) {
             return;
         }
-        
+
         $loadedAttributes = $this->loadAttributes($this->attributeColumns);
         ProcessAttributes::process($this, $loadedAttributes, $this->baseEntity(), $noJoin);
-        
+
         $this->isProcessed = true;
     }
 
@@ -284,7 +284,7 @@ class Builder extends QueryBuilder
         // ->select(['attr.*']) or ->select(['id']) or ->select(['id', 'color'])
         elseif ($allAttr || $orgColumns->get('columns')->contains($this->baseEntity()->getEntityKey())) {
             $columns[] =  "{$this->from}.{$this->baseEntity()->getEntityKey()}";
-        }       
+        }
 
         // We check if the select has only `*` or 'id', if so then we have nothing
         // to do.
@@ -321,7 +321,7 @@ class Builder extends QueryBuilder
             }
         });
 
-        $newExpression = $newColumns->get('expression');        
+        $newExpression = $newColumns->get('expression');
 
         // We might have join select clause in the original column
         $columns = $orgColumns
@@ -337,7 +337,7 @@ class Builder extends QueryBuilder
 
         $expression = $orgColumns->get('expression');
         // Merge the expression back to the query
-        if ($expression && $expression->isNotEmpty()) {            
+        if ($expression && $expression->isNotEmpty()) {
             $columns = $expression->merge($columns)->all();
         }
 
@@ -390,14 +390,14 @@ class Builder extends QueryBuilder
             })->unique()->toArray();
 
         // Merge the expression back to the query
-        
+
         if ($expression = $orgColumns->get('expression')) {
             $columns = $expression->merge($columns)->all();
         }
-         
+
         $this->columns = $columns;
     }
-    
+
 
     /**
     * Get the SQL representation of the query.
@@ -444,12 +444,12 @@ class Builder extends QueryBuilder
 
         foreach ((array) $column as $col) {
             $this->attributeWheresRef[$col][] = $values;
-        }      
+        }
 
         return $this;
     }
-    
-    
+
+
     /**
      * Add a basic where clause to the query.
      *
@@ -480,7 +480,7 @@ class Builder extends QueryBuilder
         if ($column instanceof Closure) {
             return $this->whereNestedAttribute($column, $boolean);
         }
-        
+
         $type = 'Basic';
 
         // Here we will make some assumptions about the operator. If only 2 values are
@@ -506,6 +506,7 @@ class Builder extends QueryBuilder
         if (is_null($value)) {
             return $this->whereNullAttribute($column, $boolean, $operator !== '=');
         }
+//        dd($column, compact('column', 'operator', 'value', 'boolean', 'type'));
 
         return $this->addWhereAttribute($column, compact('column', 'operator', 'value', 'boolean', 'type'));
     }
@@ -593,7 +594,7 @@ class Builder extends QueryBuilder
         if ($this->canUseFlat()) {
             return $this->whereBetween($column, $values, $boolean, $not);
         }
-        
+
         $type = 'between';
 
         return $this->addWhereAttribute($column, compact('column', 'values', 'type', 'boolean', 'not', 'type'));
@@ -650,7 +651,7 @@ class Builder extends QueryBuilder
         if ($this->canUseFlat()) {
             return $this->whereIn($column, $values, $boolean, $not);
         }
-        
+
         $type = $not ? 'NotIn' : 'In';
 
         if ($values instanceof Arrayable) {
@@ -710,7 +711,7 @@ class Builder extends QueryBuilder
         if ($this->canUseFlat()) {
             return $this->whereNull($column, $boolean, $not);
         }
-        
+
         $type = $not ? 'NotNull' : 'Null';
 
         return $this->addWhereAttribute($column, compact('column', 'boolean', 'not', 'type'));
@@ -770,7 +771,7 @@ class Builder extends QueryBuilder
         if ($this->canUseFlat()) {
             return $this->whereDate($column, $operator, $value, $boolean);
         }
-        
+
         return $this->addDateBasedWhereAttribute('Date', $column, $operator, $value, $boolean);
     }
 
@@ -834,7 +835,7 @@ class Builder extends QueryBuilder
         if ($this->canUseFlat()) {
             return $this->whereDay($column, $operator, $value, $boolean);
         }
-        
+
         return $this->addDateBasedWhereAttribute('Day', $column, $operator, $value, $boolean);
     }
 
@@ -858,7 +859,7 @@ class Builder extends QueryBuilder
         if ($this->canUseFlat()) {
             return $this->whereMonth($column, $operator, $value, $boolean);
         }
-        
+
         return $this->addDateBasedWhereAttribute('Month', $column, $operator, $value, $boolean);
     }
 
@@ -882,7 +883,7 @@ class Builder extends QueryBuilder
         if ($this->canUseFlat()) {
             return $this->whereYear($column, $operator, $value, $boolean);
         }
-        
+
         return $this->addDateBasedWhereAttribute('Year', $column, $operator, $value, $boolean);
     }
 
@@ -914,7 +915,7 @@ class Builder extends QueryBuilder
         if ($this->canUseFlat()) {
             return $this->orderBy($column, $direction);
         }
-        
+
         $property = $this->unions ? 'unionOrders' : 'orders';
         $direction = strtolower($direction) == 'asc' ? 'asc' : 'desc';
 

@@ -1,15 +1,16 @@
-<?php 
+<?php
 
 namespace Eav;
 
-use Eav\Traits\Attribute as AttributeTraits;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use Eav\Database\Eloquent\Builder as EavEloquentBuilder;
+use Eav\Database\Query\Builder as EavQueryBuilder;
+use Eav\Traits\Attribute as AttributeTraits;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model as Eloquent;
-use Eav\Database\Query\Builder as EavQueryBuilder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 abstract class Model extends Eloquent
 {
@@ -19,7 +20,7 @@ abstract class Model extends Eloquent
      * Entity code.
      * Can be used as part of method name for entity processing
      */
-    const ENTITY  = '';
+    const ENTITY = '';
 
     /**
      * Indicates if all mass assignment is enabled.
@@ -27,7 +28,7 @@ abstract class Model extends Eloquent
      * @var bool
      */
     protected static $unguarded = true;
-    
+
     /**
      * Create a new Eloquent model instance.
      *
@@ -47,14 +48,15 @@ abstract class Model extends Eloquent
 
     /**
      * Get the current attribute set using one-to-one relationship for attribute.
+     * Has been overwritten because package has inverted (wrong) relationship hasOne.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return BelongsTo
      */
     public function currentAttributeSet()
     {
-        return $this->hasOne(AttributeSet::class, 'attribute_set_id');
+        return $this->belongsTo(AttributeSet::class, 'attribute_set_id');
     }
-    
+
     /**
      * Get the Entity related to the model.
      *
@@ -103,7 +105,7 @@ abstract class Model extends Eloquent
 
         return $table;
     }
-    
+
     /**
      * Enable or Disable Flat table.
      *
@@ -113,7 +115,7 @@ abstract class Model extends Eloquent
     {
         $this->baseEntity()->is_flat_enabled = $flag;
     }
-    
+
     /**
      * Check if the Entity can use flat table.
      *
@@ -132,7 +134,7 @@ abstract class Model extends Eloquent
     public function validate()
     {
         $attributes = $this->attributes;
-        
+
         $loadedAttributes = $this->loadAttributes(
             array_keys($attributes),
             true,
@@ -141,11 +143,11 @@ abstract class Model extends Eloquent
     }
 
     /**
-    * Create a new Eloquent query builder for the model.
-    *
-    * @param  \Illuminate\Database\Query\Builder  $query
-    * @return \Illuminate\Database\Eloquent\Builder|static
-    */
+     * Create a new Eloquent query builder for the model.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder|static
+     */
     public function newEloquentBuilder($query)
     {
         return new EavEloquentBuilder($query);
@@ -187,31 +189,31 @@ abstract class Model extends Eloquent
         if ($this->usesTimestamps()) {
             $this->updateTimestamps();
         }
-        
-        return $this->getConnection()->transaction(function () use ($query, $options) {
+
+        // If the model has an incrementing key, we can use the "insertGetId" method on
+        // the query builder, which will give us back the final inserted ID for this
+        // table from the database. Not all tables have to be incrementing though.
+        $attributes = $this->attributes;
+
+        $loadedAttributes = $this->loadAttributes(array_keys($attributes), true, true);
+
+        $loadedAttributes->validate($attributes);
+
+        return $this->getConnection()->transaction(function () use ($query, $options, $attributes, $loadedAttributes) {
             if ($this->fireModelEvent('creating') === false) {
                 return false;
             }
 
-            // If the model has an incrementing key, we can use the "insertGetId" method on
-            // the query builder, which will give us back the final inserted ID for this
-            // table from the database. Not all tables have to be incrementing though.
-            $attributes = $this->getAttributes();
-            
-            $loadedAttributes = $this->loadAttributes(array_keys($attributes), true, true);
-            
-            $loadedAttributes->validate($attributes);
-            
             if (!$this->insertMainTable($query, $options, $attributes, $loadedAttributes)) {
                 return false;
             }
-            
+
             if (!$this->insertAttributes($query, $options, $attributes, $loadedAttributes)) {
                 return false;
             }
-            
+
             $this->fireModelEvent('created', false);
-             
+
             return true;
         });
     }
@@ -229,26 +231,13 @@ abstract class Model extends Eloquent
         if ($this->fireModelEvent('creating.main') === false) {
             return false;
         }
-         
+
         $mainTableAttribute = $this->getMainTableAttribute($loadedAttributes);
-        
+
         $mainData = array_intersect_key($attributes, array_flip($mainTableAttribute));
 
-        if ($this->getIncrementing()) {
-            $this->insertAndSetId($query, $mainData);
-        }
+        $this->insertAndSetId($query, $mainData);
 
-        // If the table isn't incrementing we'll simply insert these attributes as they
-        // are. These attribute arrays must contain an "id" column previously placed
-        // there by the developer as the manually determined key for these models.
-        else {
-            if (empty($mainData)) {
-                return true;
-            }
-
-            $query->insert($mainData);
-        }
-        
         // We will go ahead and set the exists property to true, so that it is set when
         // the created event is fired, just in case the developer tries to update it
         // during the event. This will allow them to do so and run an update here.
@@ -257,7 +246,7 @@ abstract class Model extends Eloquent
         $this->wasRecentlyCreated = true;
 
         $this->fireModelEvent('created.main', false);
-        
+
         return true;
     }
 
@@ -306,33 +295,33 @@ abstract class Model extends Eloquent
         if ($this->usesTimestamps()) {
             $this->updateTimestamps();
         }
-             
+
         $dirty = $this->getDirty();
 
         if (count($dirty) > 0) {
             $loadedAttributes = $this->loadAttributes(array_keys($dirty));
-        
+
             $loadedAttributes->validate($dirty);
 
             return $this->getConnection()->transaction(function () use ($query, $options, $dirty, $loadedAttributes) {
-            
+
                 // If the updating event returns false, we will cancel the update operation so
                 // developers can hook Validation systems into their models and cancel this
                 // operation if the model does not pass validation. Otherwise, we update.
                 if ($this->fireModelEvent('updating') === false) {
                     return false;
                 }
-                
+
                 if (!$this->updateMainTable($query, $options, $dirty, $loadedAttributes)) {
                     return false;
                 }
-                
+
                 if (!$this->updateAttributes($query, $options, $dirty, $loadedAttributes)) {
                     return false;
                 }
-                
+
                 $this->fireModelEvent('updated', false);
-                 
+
                 return true;
             });
 
@@ -363,15 +352,15 @@ abstract class Model extends Eloquent
         if ($this->fireModelEvent('updating.main') === false) {
             return false;
         }
-         
+
         $mainTableAttribute = $this->getMainTableAttribute($loadedAttributes);
-        
+
         $mainData = array_intersect_key($attributes, array_flip($mainTableAttribute));
-        
+
         $numRows = $this->setKeysForSaveQuery($query)->update($mainData);
 
         $this->fireModelEvent('updated.main', false);
-        
+
         return true;
     }
 

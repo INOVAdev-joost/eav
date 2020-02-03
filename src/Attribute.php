@@ -2,17 +2,17 @@
 
 namespace Eav;
 
-use ReflectionException;
-use Eav\Attribute\Concerns;
 use Eav\Attribute\Collection;
+use Eav\Attribute\Concerns;
 use Illuminate\Database\Eloquent\Model;
+use ReflectionException;
 
 class Attribute extends Model
 {
     use Concerns\QueryBuilder;
 
     const TYPE_STATIC = 'static';
-    
+
     /**
      * @{inheriteDoc}
      */
@@ -22,7 +22,7 @@ class Attribute extends Model
      * @{inheriteDoc}
      */
     public $timestamps = false;
-    
+
     /**
      * @{inheriteDoc}
      */
@@ -68,14 +68,14 @@ class Attribute extends Model
      *
      * @var array
      */
-    protected $attributeIdCache  = [];
+    protected $attributeIdCache = [];
 
     /**
      * Attribute data table name
      *
      * @var string
      */
-    protected $dataTable  = null;
+    protected $dataTable = null;
 
     /**
      * Proxy to get the attribute code.
@@ -94,7 +94,7 @@ class Attribute extends Model
     {
         return $this->getAttributeCode();
     }
-    
+
     /**
      * Get attribute code
      *
@@ -122,7 +122,7 @@ class Attribute extends Model
     {
         return $this->getKey();
     }
-    
+
     /**
      * Set attribute entity instance
      *
@@ -163,7 +163,7 @@ class Attribute extends Model
     {
         return $this->getEntityTypeId();
     }
-    
+
     /**
      * Get Entity Type Id
      *
@@ -181,7 +181,7 @@ class Attribute extends Model
     {
         return $this->getEntityType();
     }
-    
+
     /**
      * Retreive entity type
      *
@@ -191,7 +191,7 @@ class Attribute extends Model
     {
         return Entity::findById($this->entityTypeId());
     }
-    
+
     /**
      * @alias getBackendType()
      */
@@ -217,7 +217,7 @@ class Attribute extends Model
     {
         return $this->getFrontendInput();
     }
-    
+
     /**
      * Retreive frontend type
      *
@@ -235,7 +235,7 @@ class Attribute extends Model
     {
         return $this->getFrontendLabel();
     }
-    
+
     /**
      * Retreive frontend label
      *
@@ -253,7 +253,7 @@ class Attribute extends Model
     {
         return $this->getDefaultValue();
     }
-    
+
     /**
      * Retreive default value
      *
@@ -273,36 +273,36 @@ class Attribute extends Model
     public static function add(array $data)
     {
         $instance = new static;
-                
+
         try {
             $eavEntity = Entity::findByCode($data['entity_code']);
         } catch (ModelNotFoundException $e) {
-            throw new \Exception("Unable to load Entity : ".$data['entity_code']);
+            throw new \Exception("Unable to load Entity : " . $data['entity_code']);
         }
-        
+
         unset($data['entity_code']);
-        
+
         $data['entity_id'] = $eavEntity->entity_id;
-        
+
         $options = [];
-        
+
         if ($data['frontend_type'] == 'select' && empty($data['source_class'])) {
             if (isset($data['options'])) {
                 $options = $data['options'];
                 unset($data['options']);
             }
         }
-        
-        
+
+
         $instance->fill($data)->save();
-        
+
         if ($instance->getKey()) {
             AttributeOption::add($instance, $options);
         }
 
         return $instance;
     }
-    
+
     /**
      * Delete a attribute from the database.
      *
@@ -312,17 +312,17 @@ class Attribute extends Model
     public static function remove(array $data)
     {
         $instance = new static;
-                
+
         try {
             $eavEntity = Entity::findByCode($data['entity_code']);
         } catch (ModelNotFoundException $e) {
-            throw new \Exception("Unable to load Entity : ".$data['entity_code']);
+            throw new \Exception("Unable to load Entity : " . $data['entity_code']);
         }
-        
+
         unset($data['entity_code']);
-        
+
         $data['entity_id'] = $eavEntity->entity_id;
-        
+
         $instance->where($data)->delete();
     }
 
@@ -366,7 +366,7 @@ class Attribute extends Model
     {
         return $this->getBackend();
     }
-    
+
     /**
      * Retrieve backend instance
      *
@@ -414,7 +414,7 @@ class Attribute extends Model
             } catch (ReflectionException $e) {
                 throw new \Exception('Invalid frontend class specified: ' . $this->getAttribute('frontend_class'));
             }
-            
+
             $this->frontend = $frontend->setAttribute($this);
         }
 
@@ -437,7 +437,7 @@ class Attribute extends Model
             } catch (ReflectionException $e) {
                 throw new \Exception('Invalid source class specified: ' . $this->getAttribute('source_class'));
             }
-            
+
             $this->source = $source->setAttribute($this);
         }
         return $this->source;
@@ -461,7 +461,7 @@ class Attribute extends Model
     {
         return $this->getBackendTable();
     }
-    
+
     /**
      * Get attribute backend table name
      *
@@ -472,44 +472,44 @@ class Attribute extends Model
         if ($this->dataTable === null) {
             $backendTable = trim($this->getAttribute('backend_table'));
             if (empty($backendTable)) {
-                $backendTable  = $this->entity()->code().'_'.strtolower($this->getAttribute('backend_type'));
+                $backendTable = $this->entity()->code() . '_' . strtolower($this->getAttribute('backend_type'));
             }
             $this->dataTable = $backendTable;
         }
         return $this->dataTable;
     }
-    
+
     /**
      * Create a new Eloquent Collection instance.
      *
-     * @param  array  $models
+     * @param array $models
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public function newCollection(array $models = [])
     {
         return new Collection($models);
     }
-    
+
     /**
      * Find the attribute by code.
      *
-     * @param  string $code
-     * @param  string $entityCode
+     * @param string $code
+     * @param string $entityCode
      * @return \Eav\Attribute
      */
     public static function findByCode(string $code, string $entityCode)
     {
         $entity = Entity::findByCode($entityCode);
-        
+
         $instance = new static;
-        
+
         return $instance->newQuery()->where([
             'attribute_code' => $code,
             'entity_id' => $entity->getkey()
         ])->firstOrFail();
     }
-    
-    
+
+
     /**
      * Return attribute id
      *
@@ -534,7 +534,7 @@ class Attribute extends Model
         }
         return $this->attributeIdCache[$k];
     }
-    
+
     /**
      * Insert the data for the attribute.
      *
@@ -558,7 +558,7 @@ class Attribute extends Model
             'entity_id' => $entityId,
             'value' => $value
         ];
-        
+
         return $this->newBaseQueryBuilder()
             ->from($this->backendTable())
             ->insert($insertData);
@@ -567,8 +567,8 @@ class Attribute extends Model
     /**
      * Update the data for the attribute.
      *
-     * @param  mixed $value
-     * @param  int $entityId
+     * @param mixed $value
+     * @param int $entityId
      * @return bool
      */
     public function updateAttribute($value, $entityId)
@@ -588,8 +588,8 @@ class Attribute extends Model
     /**
      * Fetch the data for the attribute.
      *
-     * @param  mixed $value
-     * @param  int $entityId
+     * @param mixed $value
+     * @param int $entityId
      * @return mixed
      */
     public function fetchAttributeValue($entityId)
@@ -609,8 +609,8 @@ class Attribute extends Model
     /**
      * Mass Update the data for the attribute.
      *
-     * @param  mixed $value
-     * @param  array  $entityIds
+     * @param mixed $value
+     * @param array $entityIds
      * @return mixed
      */
     public function massUpdate($value, array $entityIds)

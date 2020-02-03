@@ -2,8 +2,8 @@
 
 namespace Eav\Attribute;
 
-use Validator;
 use Illuminate\Database\Eloquent\Collection as BaseCollection;
+use Validator;
 
 class Collection extends BaseCollection
 {
@@ -29,7 +29,7 @@ class Collection extends BaseCollection
                 }
             }
         });
-        
+
         $attributeValidator = Validator::make($data, $rules);
 
         if ($attributeValidator->fails()) {
@@ -61,8 +61,8 @@ class Collection extends BaseCollection
             return $result;
         }, []));
     }
-    
-    
+
+
     /**
      * Intersect the collection with the given items.
      *
@@ -73,8 +73,8 @@ class Collection extends BaseCollection
     {
         return new static(array_intersect_key($this->items, array_flip($keys)));
     }
-    
-    
+
+
     /**
      * Merge the collection with the given items.
      *
@@ -91,8 +91,8 @@ class Collection extends BaseCollection
 
         return new static($dictionary);
     }
-    
-    
+
+
     /**
      * Get a dictionary keyed by primary keys.
      *

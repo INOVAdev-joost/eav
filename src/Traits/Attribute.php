@@ -3,15 +3,15 @@
 namespace Eav\Traits;
 
 use Cache;
-use Illuminate\Support\Arr;
 use Eav\Attribute\Collection;
+use Illuminate\Support\Arr;
 
 trait Attribute
 {
     protected static $attributesCollection = [];
-    
+
     protected static $attributesCollectionKeys = [];
-        
+
     public function loadAttributes($attributes = [], $static = false, $required = false)
     {
         $attributes = collect($attributes)->unique();
@@ -47,7 +47,7 @@ trait Attribute
 
         static::$attributesCollectionKeys[$code] = static::$attributesCollection[$code]->code()->toArray();
     }
-    
+
     protected function fetchAttributes($attributes = [], $static = false, $required = false)
     {
         $query = $this->baseEntity()
@@ -56,7 +56,7 @@ trait Attribute
                 if (!empty($attributes)) {
                     $query->orWhereIn('attribute_code', $attributes);
                 }
-                
+
                 if ($static) {
                     $query->orWhere('backend_type', 'static');
                 }
@@ -69,18 +69,18 @@ trait Attribute
             return $query->get()->patch();
         });
     }
-    
+
     public function getMainTableAttribute($loadedAttributes)
     {
         $mainTableAttributeCollection = $loadedAttributes->filter(function ($attribute) {
             return $attribute->isStatic();
         });
-        
+
         $mainTableAttribute = $mainTableAttributeCollection->code()->toArray();
-        
+
         $mainTableAttribute[] = 'entity_id';
         $mainTableAttribute[] = 'attribute_set_id';
-        
+
         return $mainTableAttribute;
     }
 }
