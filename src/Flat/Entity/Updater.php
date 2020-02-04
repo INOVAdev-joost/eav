@@ -78,6 +78,8 @@ class Updater
                 $attributes->chunk(50)->each(function ($chunk, $key) use ($entity, $ids, &$products) {
                     $entity->select('*', ...$chunk->keys()->toArray())
                         ->whereIn("{$entity->getQuery()->from}.{$entity->getKeyName()}", $ids)
+                        // Disable eager loading otherwise additional columns would get attached that our outside the EAV scope
+                        ->setEagerLoads([])
                         ->get()->each(function ($item, $key) use (&$products) {
                             $modelAttributes = $item->toArray();
                             foreach($modelAttributes as $key => $value) {
