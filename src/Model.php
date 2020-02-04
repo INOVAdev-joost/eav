@@ -430,11 +430,15 @@ abstract class Model extends Eloquent
      */
     public function setRawAttributes(array $attributes, $sync = false)
     {
+        // Fetch all attributes in single query
         $models = Attribute::all();
         foreach($attributes as $key => $value) {
-            // TODO: Optimize this.
-            if ($key !== 'id' && $models->where('attribute_code', $key)->first()->is_multiple) {
-                $attributes[$key] = collect(explode(',', $value));
+            // Check if attribute contains multiple values and explode comma separated group
+            $attributeModel = $models->where('attribute_code', $key)->first();
+            if ($key !== 'id' && $attributeModel && $attributeModel->is_multiple) {
+                if(!is_array($value)) {
+                    $attributes[$key] = collect(explode(',', $value));
+                }
             }
         }
 
