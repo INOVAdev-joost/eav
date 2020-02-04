@@ -430,10 +430,11 @@ abstract class Model extends Eloquent
      */
     public function setRawAttributes(array $attributes, $sync = false)
     {
+        $models = Attribute::all();
         foreach($attributes as $key => $value) {
-            if (strpos($key, 'multi_') !== false) {
-                $attributes[str_replace('multi_', '', $key)] = collect(explode(',', $value));
-                unset($attributes[$key]);
+            // TODO: Optimize this.
+            if ($key !== 'id' && $models->where('attribute_code', $key)->first()->is_multiple) {
+                $attributes[$key] = collect(explode(',', $value));
             }
         }
 
