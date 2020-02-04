@@ -32,14 +32,14 @@ class ProcessAttributes
 
         $usedAttributes = $loadedAttributes
             ->filter(function ($attribute) use ($filterAttr) {
-                return isset($filterAttr[$attribute->code()]);
+                return isset($filterAttr[$attribute->getAttributeCode()]);
             });
-            
+
         foreach ((array) $query->attributeOrderBy as $bindings) {
             foreach ($bindings as $binding) {
                 $attribute = $usedAttributes->get($binding['column']);
                 if ($attribute) {
-                    $joinType = isset($orginalColumns[$attribute->code()])?'left':'inner';
+                    $joinType = isset($orginalColumns[$attribute->getAttributeCode()])?'left':'inner';
                     $attribute->setEntity($baseEntity);
                     $attribute->addAttributeJoin($query, $joinType);
                     $attribute->addAttributeOrderBy($query, $binding);
@@ -60,7 +60,7 @@ class ProcessAttributes
                     }
 
                     $loadedAttributes->each(function ($attribute, $key) use ($binding, $baseEntity, $query, $orginalColumns) {
-                        $joinType = isset($orginalColumns[$attribute->code()]) || ($binding['boolean'] == 'or')?'left':'inner';
+                        $joinType = isset($orginalColumns[$attribute->getAttributeCode()]) || ($binding['boolean'] == 'or')?'left':'inner';
                         $attribute->setEntity($baseEntity);
                         $attribute->addAttributeJoin($query, $joinType);
                     });
@@ -73,7 +73,7 @@ class ProcessAttributes
                         if ($attribute) {
                             $attribute->setEntity($baseEntity);
                             if (!$noJoin) {
-                                $joinType = isset($orginalColumns[$attribute->code()]) || ($binding['boolean'] == 'or')?'left':'inner';
+                                $joinType = isset($orginalColumns[$attribute->getAttributeCode()]) || ($binding['boolean'] == 'or')?'left':'inner';
                                 $attribute->addAttributeJoin($query, $joinType);
                             }
                             $attribute->addAttributeWhere(

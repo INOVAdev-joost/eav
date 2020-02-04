@@ -39,7 +39,7 @@ trait QueryBuilder
             $subQuery = $subQuery->select("value");
         }
 
-        $query->selectSub($subQuery, ($this->is_multiple ? 'multi_' : '') . $this->code());
+        $query->selectSub($subQuery, $this->getAttributeCode());
     }
 
     /**
@@ -68,10 +68,10 @@ trait QueryBuilder
     public function getSelectColumn()
     {
         if ($this->isStatic()) {
-            return $this->code();
+            return $this->getAttributeCode();
         }
 
-        return "{$this->code()}_attr.value as {$this->code()}";
+        return "{$this->getAttributeCode()}_attr.value as {$this->getAttributeCode()}";
     }
 
     /**
@@ -82,10 +82,10 @@ trait QueryBuilder
     public function getRawSelectColumn()
     {
         if ($this->isStatic()) {
-            return $this->code();
+            return $this->getAttributeCode();
         }
 
-        return "{$this->code()}_attr.value";
+        return "{$this->getAttributeCode()}_attr.value";
     }
 
 
@@ -98,32 +98,32 @@ trait QueryBuilder
      */
     public function addAttributeJoin($query, $joinType = 'inner', $callback = null)
     {
-        if ($this->isStatic() || isset($query->joinCache[$this->code()])) {
+        if ($this->isStatic() || isset($query->joinCache[$this->getAttributeCode()])) {
             return $this;
         }
 
-        $query->joinCache[$this->code()] = 1;
+        $query->joinCache[$this->getAttributeCode()] = 1;
 
         if (is_callable($callback)) {
             $callback = function ($join) use ($query) {
-                $callback($join, $query, "{$this->code()}_attr");
+                $callback($join, $query, "{$this->getAttributeCode()}_attr");
             };
 
             if ($joinType == 'left') {
-                $query->leftJoin("{$this->backendTable()} as {$this->code()}_attr", $callback);
+                $query->leftJoin("{$this->backendTable()} as {$this->getAttributeCode()}_attr", $callback);
             } else {
-                $query->join("{$this->backendTable()} as {$this->code()}_attr", $callback);
+                $query->join("{$this->backendTable()} as {$this->getAttributeCode()}_attr", $callback);
             }
         } else {
             if ($joinType == 'left') {
-                $query->leftJoin("{$this->backendTable()} as {$this->code()}_attr", function ($join) use ($query) {
-                    $join->on("{$query->from}.{$this->entity()->entityKey()}", '=', "{$this->code()}_attr.entity_id")
-                        ->where("{$this->code()}_attr.attribute_id", "=", $this->attributeId());
+                $query->leftJoin("{$this->backendTable()} as {$this->getAttributeCode()}_attr", function ($join) use ($query) {
+                    $join->on("{$query->from}.{$this->entity()->entityKey()}", '=', "{$this->getAttributeCode()}_attr.entity_id")
+                        ->where("{$this->getAttributeCode()}_attr.attribute_id", "=", $this->attributeId());
                 });
             } else {
-                $query->join("{$this->backendTable()} as {$this->code()}_attr", function ($join) use ($query) {
-                    $join->on("{$query->from}.{$this->entity()->entityKey()}", '=', "{$this->code()}_attr.entity_id")
-                        ->where("{$this->code()}_attr.attribute_id", "=", $this->attributeId());
+                $query->join("{$this->backendTable()} as {$this->getAttributeCode()}_attr", function ($join) use ($query) {
+                    $join->on("{$query->from}.{$this->entity()->entityKey()}", '=', "{$this->getAttributeCode()}_attr.entity_id")
+                        ->where("{$this->getAttributeCode()}_attr.attribute_id", "=", $this->attributeId());
                 });
             }
         }
@@ -143,7 +143,7 @@ trait QueryBuilder
         if ($this->isStatic()) {
             $query->orderBy("{$query->from}.{$binding['column']}", $binding['direction']);
         } else {
-            $query->orderBy("{$this->code()}_attr.value", $binding['direction']);
+            $query->orderBy("{$this->getAttributeCode()}_attr.value", $binding['direction']);
         }
 
         return $this;
@@ -177,7 +177,7 @@ trait QueryBuilder
         if ($this->isStatic()) {
             $query->where("{$query->from}.{$binding['column']}", $binding['operator'], $binding['value'], $binding['boolean']);
         } else {
-            $query->where("{$this->code()}_attr.value", $binding['operator'], $binding['value'], $binding['boolean']);
+            $query->where("{$this->getAttributeCode()}_attr.value", $binding['operator'], $binding['value'], $binding['boolean']);
         }
     }
 
@@ -193,7 +193,7 @@ trait QueryBuilder
         if ($this->isStatic()) {
             $query->whereBetween("{$query->from}.{$binding['column']}", $binding['values'], $binding['boolean'], $binding['not']);
         } else {
-            $query->whereBetween("{$this->code()}_attr.value", $binding['values'], $binding['boolean'], $binding['not']);
+            $query->whereBetween("{$this->getAttributeCode()}_attr.value", $binding['values'], $binding['boolean'], $binding['not']);
         }
     }
 
@@ -209,7 +209,7 @@ trait QueryBuilder
         if ($this->isStatic()) {
             $query->whereIn("{$query->from}.{$binding['column']}", $binding['values'], $binding['boolean'], $binding['not']);
         } else {
-            $query->whereIn("{$this->code()}_attr.value", $binding['values'], $binding['boolean'], $binding['not']);
+            $query->whereIn("{$this->getAttributeCode()}_attr.value", $binding['values'], $binding['boolean'], $binding['not']);
         }
     }
 
@@ -225,7 +225,7 @@ trait QueryBuilder
         if ($this->isStatic()) {
             $query->whereNotIn("{$query->from}.{$binding['column']}", $binding['values'], $binding['boolean'], $binding['not']);
         } else {
-            $query->whereNotIn("{$this->code()}_attr.value", $binding['values'], $binding['boolean'], $binding['not']);
+            $query->whereNotIn("{$this->getAttributeCode()}_attr.value", $binding['values'], $binding['boolean'], $binding['not']);
         }
     }
 
@@ -241,7 +241,7 @@ trait QueryBuilder
         if ($this->isStatic()) {
             $query->whereNull("{$query->from}.{$binding['column']}", $binding['boolean'], $binding['not']);
         } else {
-            $query->whereNull("{$this->code()}_attr.value", $binding['boolean'], $binding['not']);
+            $query->whereNull("{$this->getAttributeCode()}_attr.value", $binding['boolean'], $binding['not']);
         }
     }
 
@@ -257,7 +257,7 @@ trait QueryBuilder
         if ($this->isStatic()) {
             $query->whereNotNull("{$query->from}.{$binding['column']}", $binding['boolean'], $binding['not']);
         } else {
-            $query->whereNotNull("{$this->code()}_attr.value", $binding['boolean'], $binding['not']);
+            $query->whereNotNull("{$this->getAttributeCode()}_attr.value", $binding['boolean'], $binding['not']);
         }
     }
 
@@ -273,7 +273,7 @@ trait QueryBuilder
         if ($this->isStatic()) {
             $query->whereDate("{$query->from}.{$binding['column']}", $binding['operator'], $binding['value'], $binding['boolean']);
         } else {
-            $query->whereDate("{$this->code()}_attr.value", $binding['operator'], $binding['value'], $binding['boolean']);
+            $query->whereDate("{$this->getAttributeCode()}_attr.value", $binding['operator'], $binding['value'], $binding['boolean']);
         }
     }
 
@@ -289,7 +289,7 @@ trait QueryBuilder
         if ($this->isStatic()) {
             $query->whereDay("{$query->from}.{$binding['column']}", $binding['operator'], $binding['value'], $binding['boolean']);
         } else {
-            $query->whereDay("{$this->code()}_attr.value", $binding['operator'], $binding['value'], $binding['boolean']);
+            $query->whereDay("{$this->getAttributeCode()}_attr.value", $binding['operator'], $binding['value'], $binding['boolean']);
         }
     }
 
@@ -305,7 +305,7 @@ trait QueryBuilder
         if ($this->isStatic()) {
             $query->whereMonth("{$query->from}.{$binding['column']}", $binding['operator'], $binding['value'], $binding['boolean']);
         } else {
-            $query->whereMonth("{$this->code()}_attr.value", $binding['operator'], $binding['value'], $binding['boolean']);
+            $query->whereMonth("{$this->getAttributeCode()}_attr.value", $binding['operator'], $binding['value'], $binding['boolean']);
         }
     }
 
@@ -321,7 +321,7 @@ trait QueryBuilder
         if ($this->isStatic()) {
             $query->whereYear("{$query->from}.{$binding['column']}", $binding['operator'], $binding['value'], $binding['boolean']);
         } else {
-            $query->whereYear("{$this->code()}_attr.value", $binding['operator'], $binding['value'], $binding['boolean']);
+            $query->whereYear("{$this->getAttributeCode()}_attr.value", $binding['operator'], $binding['value'], $binding['boolean']);
         }
     }
 
@@ -337,7 +337,7 @@ trait QueryBuilder
         if ($this->isStatic()) {
             $query->whereTime("{$query->from}.{$binding['column']}", $binding['operator'], $binding['value'], $binding['boolean']);
         } else {
-            $query->whereTime("{$this->code()}_attr.value", $binding['operator'], $binding['value'], $binding['boolean']);
+            $query->whereTime("{$this->getAttributeCode()}_attr.value", $binding['operator'], $binding['value'], $binding['boolean']);
         }
     }
 }
