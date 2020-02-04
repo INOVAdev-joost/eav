@@ -134,7 +134,10 @@ class Complier
 
                 $backendTable = $attribute->getBackendType();
                 
-                if ($backendTable == 'char' || $backendTable == 'string') {
+                if($attribute->is_multiple) {
+                    // When an attribute has multiple values these will be concatenated to a single string with , separated values
+                    $schema .= ":string";
+                } elseif ($backendTable == 'char' || $backendTable == 'string') {
                     $schema .= ":{$backendTable}({$table['CHARACTER_MAXIMUM_LENGTH']})";
                 } elseif (in_array($backendTable, ['decimal', 'double', 'float', 'unsignedDecimal'])) {
                     $schema .= ":{$backendTable}({$table['NUMERIC_PRECISION']}, {$table['NUMERIC_SCALE']})";
