@@ -79,11 +79,19 @@ class Updater
                     $entity->select('*', ...$chunk->keys()->toArray())
                         ->whereIn("{$entity->getQuery()->from}.{$entity->getKeyName()}", $ids)
                         ->get()->each(function ($item, $key) use (&$products) {
+                            $modelAttributes = $item->toArray();
+                            foreach($modelAttributes as $key => $value) {
+                                if(!$value instanceof Collection) {
+                                    continue;
+                                }
+                                $modelAttributes[$key] = implode(',', $value->toArray());
+                            }
+
                             if ($products->has($item->getKey())) {
                                 $product = $products->get($item->getKey());
-                                $products->put($item->getKey(), $product + $item->toArray());
+                                $products->put($item->getKey(), $product + $modelAttributes);
                             } else {
-                                $products->put($item->getKey(), $item->toArray());
+                                $products->put($item->getKey(), $modelAttributes);
                             }
                         });
                 });
