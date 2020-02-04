@@ -90,7 +90,7 @@ class Complier
             } else {
                 if ($attribute['DATA_TYPE'] == 'decimal') {
                     $schema = "{$attribute['COLUMN_NAME']}:{$this->getColumn($attribute['DATA_TYPE'])}({$attribute['NUMERIC_PRECISION']} , {$attribute['NUMERIC_SCALE']})";
-                } elseif ($attribute['DATA_TYPE'] == 'int') {
+                } elseif ($attribute['DATA_TYPE'] == 'int' || $attribute['DATA_TYPE'] == 'bigint') {
                     $schema = "{$attribute['COLUMN_NAME']}:{$this->getColumn($attribute['DATA_TYPE'])}";
                     if (!Str::contains($attribute['COLUMN_TYPE'], 'unsigned')) {
                         $schema .= "({$attribute['NUMERIC_PRECISION']})";
@@ -265,11 +265,12 @@ class Complier
         return $this;
     }
 
-    
+
     protected function getColumn($type)
     {
         switch ($type) {
             case 'int':
+            case 'bigint':
                 return 'integer';
                 break;
             case 'timestamp':
