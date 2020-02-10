@@ -42,6 +42,11 @@ class AttributeGroup extends Model
         return $this->getAttribute('attribute_group_name');
     }
 
+    public function attributeSet()
+    {
+        return $this->belongsTo(AttributeSet::class, 'attribute_set_id', 'attribute_set_id');
+    }
+
     /**
      * Set the name.
      *

@@ -51,6 +51,11 @@ class AttributeSet extends Model
         return $this->attributeGroup();
     }
 
+    public function entity()
+    {
+        return $this->belongsTo(Entity::class, 'entity_id', 'entity_id');
+    }
+
     /**
      * Define a one-to-many relationship for attribute group.
      *
