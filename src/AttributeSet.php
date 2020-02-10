@@ -10,12 +10,12 @@ class AttributeSet extends Model
      * @{inheriteDoc}
      */
     protected $primaryKey = 'attribute_set_id';
-    
+
     /**
      * @{inheriteDoc}
      */
     public $timestamps = false;
-    
+
     /**
      * @{inheriteDoc}
      */
@@ -32,7 +32,7 @@ class AttributeSet extends Model
     {
         return $this->getAttribute('attribute_set_name');
     }
-    
+
     /**
      * Define a has-many-through relationship for attributes.
      *

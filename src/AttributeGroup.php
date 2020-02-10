@@ -10,7 +10,7 @@ class AttributeGroup extends Model
      * @{inheriteDoc}
      */
     protected $primaryKey = 'attribute_group_id';
-    
+
     /**
      * @{inheriteDoc}
      */
@@ -24,7 +24,7 @@ class AttributeGroup extends Model
     protected $attributes = [
         'sequence' => 0,
     ];
-    
+
     /**
      * @{inheriteDoc}
      */
@@ -64,7 +64,7 @@ class AttributeGroup extends Model
      * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
      */
     public function attributes()
-    {   
+    {
         return $this->hasManyThrough(Attribute::class, EntityAttribute::class, 'attribute_group_id', 'attribute_id')
             ->select(['attributes.*', 'entity_attributes.sequence'])
             ->orderBy('entity_attributes.sequence');
