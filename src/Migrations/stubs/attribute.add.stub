@@ -12,6 +12,7 @@
 				'default_value' => 'DEFAULTVALUE',
 				'is_required' => ISREQUIRED,
 				'is_filterable' => ISFILTERABLE,
+				'is_filterable_ADMIN' => ISFILTERABLEADMIN,
 				'is_searchable' => ISSEARCHABLE,
-				'required_validate_class' =>  'VALIDATIONCLASS'	
+				'required_validate_class' =>  'VALIDATIONCLASS'
 			]);

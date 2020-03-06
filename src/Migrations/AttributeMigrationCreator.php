@@ -139,6 +139,7 @@ class AttributeMigrationCreator
             'default_value' => '',
             'is_required' => 0,
             'is_filterable' => 0,
+            'is_filterable_admin' => 0,
             'is_searchable' => 0,
             'required_validate_class' =>  null
         ];

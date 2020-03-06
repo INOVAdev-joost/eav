@@ -78,7 +78,7 @@ class AttributeController extends Controller
         $data = Arr::only($attributes, [
             'frontend_label', 'frontend_type',
             'is_required', 'is_filterable',
-            'is_searchable', 'backend_type',
+            'is_searchable', 'backend_type', 'is_filterable_admin',
         ]);
 
         $data['attribute_code'] = $attributes['code'];
@@ -106,7 +106,7 @@ class AttributeController extends Controller
         $data = Arr::only($attributes, [
             'frontend_label', 'frontend_type',
             'is_required', 'is_filterable',
-            'is_searchable', 'backend_type'
+            'is_searchable', 'backend_type', 'is_filterable_admin'
         ]);
 
         $data['default_value'] = Arr::get($attributes, 'default_value', '');
@@ -143,6 +143,7 @@ class AttributeController extends Controller
             ],
             'data.attributes.is_required' => 'required|boolean',
             'data.attributes.is_filterable' => 'required|boolean',
+            'data.attributes.is_filterable_admin' => 'required|boolean',
             'data.attributes.is_searchable' => 'required|boolean',
             'data.attributes.backend_type' => [
                 'required',

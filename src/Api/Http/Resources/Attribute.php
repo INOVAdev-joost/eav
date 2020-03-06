@@ -30,6 +30,7 @@ class Attribute extends Resource
                 'default_value' =>  $this->default_value,
                 'is_required' =>  $this->is_required,
                 'is_filterable' =>  $this->is_filterable,
+                'is_filterable_admin' =>  $this->is_filterable_admin,
                 'is_searchable' =>  $this->is_searchable,
                 'required_validate_class' =>   $this->required_validate_class,
                 'sequence' => $this->when(!is_null($this->sequence), $this->sequence),
