@@ -13,7 +13,7 @@ class Frontend implements FrontendContract
      * @var Eav\Attribute
      */
     protected $attribute;
-    
+
     /**
      * Set attribute instance
      *
@@ -35,7 +35,7 @@ class Frontend implements FrontendContract
     {
         return $this->attribute;
     }
-    
+
     /**
      * Get attribute type for user interface form
      *
@@ -45,7 +45,7 @@ class Frontend implements FrontendContract
     {
         return $this->attribute()->frontendInput();
     }
-    
+
     /**
      * Retreive lable
      *
@@ -60,7 +60,7 @@ class Frontend implements FrontendContract
 
         return $label;
     }
-    
+
     /**
      * Get select options in case it's select and options source is defined
      *
