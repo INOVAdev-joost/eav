@@ -88,4 +88,15 @@ class Frontend implements FrontendContract
         }
         return $default;
     }
+
+    /**
+     * Display a formatted value
+     *
+     * @param $value
+     * @return mixed
+     */
+    public function display($value)
+    {
+        return $value;
+    }
 }
