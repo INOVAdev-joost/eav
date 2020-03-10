@@ -12,6 +12,18 @@ trait Attribute
 
     protected static $attributesCollectionKeys = [];
 
+    /**
+     * Reset static arrays to empty.
+     * While in a testing environment these static 'caches' need to be removed to prevent scenario's where attributes with same
+     * attribute_code would result in different outcome when next test runs.
+     * This reset method can be used in the teardown() method to reset the attributes and fixed this caching between test jobs.
+     */
+    public static function reset()
+    {
+        self::$attributesCollection = [];
+        self::$attributesCollectionKeys = [];
+    }
+
     public function loadAttributes($attributes = [], $static = false, $required = false)
     {
         $attributes = collect($attributes)->unique();
