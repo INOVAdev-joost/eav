@@ -335,11 +335,12 @@ class Builder extends QueryBuilder
             $columns = $newExpression->merge($columns)->all();
         }
 
-        $expression = $orgColumns->get('expression');
-        // Merge the expression back to the query
-        if ($expression && $expression->isNotEmpty()) {
-            $columns = $expression->merge($columns)->all();
-        }
+        // This code results in double expresions in select statement. Remove this for now but leave it commented as we may encounter some special cases.
+//        $expression = $orgColumns->get('expression');
+//        // Merge the expression back to the query
+//        if ($expression && $expression->isNotEmpty()) {
+//            $columns = $expression->merge($columns)->all();
+//        }
 
         $this->columns = $columns;
         return $this;
