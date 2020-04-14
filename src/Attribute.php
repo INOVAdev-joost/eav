@@ -44,6 +44,7 @@ class Attribute extends Model
         'is_multiple',
         'is_filterable_admin',
         'form_container',
+        'remote_data_source',
     ];
 
     /**
