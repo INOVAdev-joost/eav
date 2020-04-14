@@ -20,10 +20,10 @@ class Builder extends EloquentBuilder
             ->get()
             ->patch();
 
+        $baseQuery = (clone $this->query);
 
-        return $filterable->map(function ($filter, $code) use ($count) {
-            $query = $this->query->newQuery()->from($this->query->from);
-
+        return $filterable->map(function ($filter, $code) use ($count, $baseQuery) {
+            $query = (clone $baseQuery);
 
             foreach ($this->query->attributeWheresRef as $column => $values) {
                 if ($filter->getAttributeCode() == $column) {
