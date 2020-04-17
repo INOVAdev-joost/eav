@@ -962,7 +962,9 @@ class Builder extends QueryBuilder
 
             $options = $filter->options();
 
-            return $query->get()->map(function ($option, $key) use ($filter, $options, $count) {
+            $result = [];
+
+            $query->get()->each(function ($option, $key) use (&$result, $filter, $options, $count) {
                 $value = $option->{$filter->getAttributeCode()};
                 if ($value === null) {
                     return null;
@@ -973,13 +975,19 @@ class Builder extends QueryBuilder
                 ];
 
                 if ($count) {
-                    $data['count'] = $option->count;
+                    if (isset($result[$data['value']])) {
+                        $data['count'] = $result[$data['value']]['count'] + $option->count;
+                    } else {
+                        $data['count'] = $option->count;
+                    }
                 }
 
-                return $data;
-            })->filter()->mapWithKeys(function ($item) {
-                return [$item['value'] => $item];
+                $result[$data['value']] = $data;
             });
+
+            $result = array_filter($result);
+
+            return collect($result);
         });
     }
 }
