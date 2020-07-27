@@ -2,10 +2,13 @@
 
 namespace Eav;
 
+use App\Traits\Translation\Taggable;
 use Illuminate\Database\Eloquent\Model;
 
 class AttributeSet extends Model
 {
+    use Taggable;
+
     /**
      * @{inheriteDoc}
      */
@@ -20,7 +23,11 @@ class AttributeSet extends Model
      * @{inheriteDoc}
      */
     protected $fillable = [
-        'attribute_set_name' , 'entity_id'
+        'attribute_set_name' , 'entity_id', 'label_tag_id',
+    ];
+
+    protected $taggableColumns = [
+        'label_tag_id',
     ];
 
     /**
